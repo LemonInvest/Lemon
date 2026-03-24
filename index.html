@@ -1,90 +1,129 @@
-</html>
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Microsoft Hub - Angola</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Microsoft Hub - Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         .ms-gradient { background: linear-gradient(135deg, #0078D4 0%, #005A9E 100%); }
-        .screen { display: none; }
-        .active-screen { display: block; }
+        .screen { display: none; padding-bottom: 100px; }
+        .active-screen { display: block !important; }
+        .btn-whatsapp { position: fixed; bottom: 90px; right: 20px; background: #25d366; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="bg-slate-50 text-slate-800 font-sans">
 
-    <div id="login-screen" class="fixed inset-0 z-[100] ms-gradient flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 shadow-2xl text-center">
-            <i class="fab fa-microsoft text-blue-600 text-5xl mb-4"></i>
-            <h2 class="text-xl font-black mb-6">Microsoft Hub AO</h2>
-            <input type="number" id="uid" placeholder="Telemóvel" class="w-full p-4 bg-slate-50 border rounded-xl mb-3 outline-none font-bold">
-            <input type="password" id="upass" placeholder="Senha (8 dígitos)" class="w-full p-4 bg-slate-50 border rounded-xl mb-6 outline-none font-bold">
-            <button onclick="handleAuth()" class="w-full py-4 ms-gradient text-white font-black rounded-xl shadow-lg uppercase">Aceder Conta</button>
-            <p onclick="toggleAuthMode()" id="auth-toggle" class="mt-4 text-xs font-bold text-slate-400 cursor-pointer uppercase">Não tem conta? Registe-se</p>
+    <a href="https://wa.me/244929520327" id="wa-float" class="btn-whatsapp hidden" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <div id="login-screen" class="fixed inset-0 z-[999] ms-gradient flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl text-center">
+            <i class="fab fa-microsoft text-blue-600 text-5xl mb-2"></i>
+            <h2 class="text-xl font-black mb-6 text-blue-700 uppercase italic italic">Microsoft Hub</h2>
+            
+            <div class="flex border-b mb-6 font-bold text-[10px] uppercase text-slate-400">
+                <button id="t-log" onclick="setAuth('login')" class="flex-1 pb-2 text-blue-600 border-b-2 border-blue-600">Entrar</button>
+                <button id="t-reg" onclick="setAuth('reg')" class="flex-1 pb-2">Registar</button>
+            </div>
+
+            <div class="space-y-4">
+                <input type="number" id="uid" placeholder="Telemóvel" class="w-full p-4 bg-slate-50 border rounded-xl text-center font-bold outline-none border-blue-100">
+                <input type="password" id="upass" placeholder="Senha" class="w-full p-4 bg-slate-50 border rounded-xl text-center font-bold outline-none border-blue-100">
+                <input type="number" id="uref" placeholder="ID Convite (Opcional)" class="w-full p-4 bg-blue-50 border rounded-xl text-center text-[10px] font-bold text-blue-600 outline-none">
+                <button onclick="handleAuth()" id="btn-auth" class="w-full py-4 ms-gradient text-white font-black rounded-xl shadow-lg uppercase active:scale-95 transition-all">Entrar no Sistema</button>
+                <p id="status-msg" class="text-[9px] font-bold text-red-500 uppercase italic"></p>
+            </div>
         </div>
     </div>
 
-    <div id="main-app" class="hidden min-h-screen pb-24">
+    <div id="main-app" class="hidden min-h-screen">
         <header class="bg-white p-5 border-b sticky top-0 z-50 flex justify-between items-center shadow-sm">
-            <div class="font-black text-blue-700">MS HUB AO</div>
+            <div class="font-black text-blue-700 italic uppercase text-sm">MICROSOFT HUB</div>
             <div id="u-display" class="text-[10px] font-black bg-blue-100 text-blue-700 px-3 py-1 rounded-full uppercase">ID: ---</div>
         </header>
 
         <main class="p-4">
             <div id="sc-home" class="screen active-screen">
-                <div class="ms-gradient rounded-[2rem] p-8 text-white shadow-xl mb-6 text-center">
-                    <p class="text-[10px] font-bold opacity-70 uppercase">Saldo de Investimento</p>
+                <div class="ms-gradient rounded-3xl p-8 text-white shadow-xl mb-6 text-center">
+                    <p class="text-[10px] font-bold opacity-70 uppercase tracking-widest">Saldo Disponível</p>
                     <h1 id="balance" class="text-4xl font-black my-2">0,00 KZ</h1>
-                    <span id="vip-status" class="text-[9px] font-black bg-black/10 px-4 py-1 rounded-full uppercase">Nenhum VIP Ativo</span>
+                    <span id="vip-status" class="text-[9px] font-black bg-black/20 px-4 py-1 rounded-full uppercase italic">Nenhum Plano</span>
                 </div>
-
-                <div class="grid grid-cols-4 gap-2 mb-8 text-center font-black">
-                    <div onclick="show('sc-dep')" class="bg-white p-3 rounded-xl shadow-sm"><i class="fas fa-university text-blue-600"></i><p class="text-[8px] mt-1 uppercase">Depósito</p></div>
-                    <div onclick="show('sc-wit')" class="bg-white p-3 rounded-xl shadow-sm"><i class="fas fa-wallet text-orange-500"></i><p class="text-[8px] mt-1 uppercase">Saque</p></div>
-                    <div onclick="show('sc-iban')" class="bg-white p-3 rounded-xl shadow-sm"><i class="fas fa-id-card text-green-600"></i><p class="text-[8px] mt-1 uppercase">IBAN</p></div>
-                    <div onclick="show('sc-team')" class="bg-white p-3 rounded-xl shadow-sm"><i class="fas fa-users text-purple-600"></i><p class="text-[8px] mt-1 uppercase">Equipa</p></div>
-                </div>
-
-                <div class="bg-white rounded-2xl p-4 shadow-sm border">
-                    <h3 class="font-black text-[10px] mb-4 text-slate-400 border-b pb-2 uppercase tracking-widest">Planos de Rendimento (3.3%)</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-[10px] text-center font-bold">
-                            <thead class="text-slate-300"><tr><th class="text-left py-2">NÍVEL</th><th>DIA</th><th>MÊS</th><th>AÇÃO</th></tr></thead>
-                            <tbody id="v-rows"></tbody>
-                        </table>
-                    </div>
+                <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                    <table class="w-full text-left text-[10px]">
+                        <thead class="bg-slate-100 text-slate-400 font-black uppercase italic">
+                            <tr><th class="p-3">Plano</th><th class="p-3">Preço</th><th class="p-3">Lucro/Dia</th><th class="p-3 text-center">Ação</th></tr>
+                        </thead>
+                        <tbody id="vips-table-body" class="font-bold border-t"></tbody>
+                    </table>
                 </div>
             </div>
-            </main>
+
+            <div id="sc-dep" class="screen">
+                <div class="bg-white p-6 rounded-3xl shadow-lg border mb-6">
+                    <h3 class="font-black text-sm mb-4 uppercase text-blue-700 italic border-b pb-2 text-center">Recarga de Saldo</h3>
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button onclick="setBank('BFA')" class="p-3 border rounded-xl font-black text-[10px] text-blue-700 uppercase italic">Banco BFA</button>
+                        <button onclick="setBank('BAI')" class="p-3 border rounded-xl font-black text-[10px] text-blue-700 uppercase italic">Banco BAI</button>
+                    </div>
+                    <div id="bank-info" class="hidden bg-blue-50 p-4 rounded-xl text-[9px] font-mono mb-6 border-dashed border-2 border-blue-200 text-blue-800 text-left whitespace-pre"></div>
+                    <input type="number" id="dep-val" placeholder="Valor KZ" class="w-full p-4 bg-slate-50 border rounded-xl mb-4 font-black text-xl text-center outline-none">
+                    <label class="w-full flex flex-col items-center px-4 py-3 bg-white text-blue-600 rounded-xl border border-blue-200 cursor-pointer mb-6">
+                        <i class="fas fa-camera text-xl mb-1"></i>
+                        <span class="text-[10px] font-black uppercase" id="file-label">Anexar Comprovativo</span>
+                        <input type="file" id="dep-file" class="hidden" accept="image/*" onchange="document.getElementById('file-label').innerText = 'Ficheiro Pronto ✔️'" />
+                    </label>
+                    <button onclick="enviarDeposito()" class="w-full py-4 ms-gradient text-white font-black rounded-xl uppercase shadow-lg">Enviar Comprovativo</button>
+                </div>
+                <div id="dep-history" class="space-y-2"></div>
+            </div>
+
+            <div id="sc-team" class="screen">
+                <div class="bg-white p-6 rounded-3xl shadow-lg border mb-6 text-center text-purple-700">
+                    <h3 class="font-black text-sm mb-4 uppercase italic border-b pb-2">Equipa e Convites</h3>
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <div class="bg-slate-50 p-4 rounded-2xl border text-center">
+                            <p class="text-[8px] font-black uppercase text-slate-400">Afiliados</p>
+                            <h4 id="team-count" class="text-xl font-black">0</h4>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border text-center">
+                            <p class="text-[8px] font-black uppercase text-slate-400">Meu ID</p>
+                            <h4 id="my-ref-id" class="text-sm font-black text-slate-700">---</h4>
+                        </div>
+                    </div>
+                    <button onclick="copyRefLink()" class="w-full py-4 bg-purple-600 text-white font-black rounded-xl uppercase shadow-lg text-xs italic">Copiar Link de Convite</button>
+                </div>
+            </div>
+
+            <div id="sc-wit" class="screen">
+                <div class="bg-white p-6 rounded-3xl shadow-lg border mb-6">
+                    <h3 class="font-black text-sm mb-4 uppercase text-orange-600 italic border-b pb-2 text-center">Levantamento</h3>
+                    <div class="space-y-3 mb-6 p-4 bg-slate-50 rounded-2xl border">
+                        <input type="number" id="user-iban" placeholder="IBAN Angolano" class="w-full p-3 border rounded-xl font-bold text-xs text-center outline-none">
+                        <input type="text" id="user-name" placeholder="Nome do Titular" class="w-full p-3 border rounded-xl font-bold text-xs text-center outline-none">
+                        <button onclick="saveIban()" class="w-full py-2 bg-slate-800 text-white font-black rounded-lg text-[9px] uppercase italic">Vincular Minha Conta</button>
+                    </div>
+                    <div id="withdraw-fields" class="hidden">
+                        <input type="number" id="wit-val" oninput="calcularTaxa()" placeholder="Valor KZ" class="w-full p-4 bg-slate-50 border rounded-xl mb-2 text-center text-2xl font-bold outline-none">
+                        <div class="bg-slate-100 p-3 rounded-xl mb-6 flex justify-between items-center text-[10px] font-black uppercase italic">
+                            <div class="text-red-500">Taxa 10%: <span id="tax-val">0</span></div>
+                            <div class="text-green-600">Recebe: <span id="net-val">0</span></div>
+                        </div>
+                        <button onclick="execSaque()" class="w-full py-4 bg-orange-500 text-white font-black rounded-xl uppercase shadow-lg">Solicitar Saque</button>
+                    </div>
+                </div>
+                <div id="wit-history" class="space-y-2"></div>
+            </div>
+        </main>
 
         <nav class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex justify-around shadow-2xl z-50">
-            <button onclick="show('sc-home')" class="text-2xl text-blue-600"><i class="fas fa-home"></i></button>
-            <button onclick="window.location.href='https://wa.me/244929520327'" class="text-2xl text-slate-400"><i class="fab fa-whatsapp"></i></button>
-            <button onclick="logout()" class="text-2xl text-red-400"><i class="fas fa-power-off"></i></button>
-        </nav>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        // CONFIGURAÇÃO DO FIREBASE
-        const firebaseConfig = {
-            apiKey: "COLE_AQUI",
-            authDomain: "seu-projeto.firebaseapp.com",
-            databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
-            projectId: "seu-projeto",
-            storageBucket: "seu-projeto.appspot.com",
-            appId: "seu-id"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // Funções de Autenticação, Rendimento 3.3% e Bónus de Rede 10%/4%/1% aqui...
-        // (Aquelas que discutimos anteriormente)
-    </script>
-</body>
-</html>
+            <button onclick="show('sc-home')" class="nav-btn text-2xl text-blue-600"><i class="fas fa-home"></i></button>
+            <button onclick="show('sc-dep')" class="nav-btn text-2xl text-slate-400"><i class="fas fa-university"></i></button>
+            <button onclick="show('sc-team')" class="nav-btn text-2xl text-slate-400"><i class="fas fa-users"></i></button>
+            <button onclick="show('sc-wit')" class="nav-btn text-2xl text-slate-400"><i class="fas fa-wallet"></i></button>
+            <button onclick=
