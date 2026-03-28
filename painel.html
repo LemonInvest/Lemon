@@ -1,165 +1,231 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA CENTRAL - ZAKWORK</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <title>Chevron Admin | Gestão de Ativos</title>
     <style>
-        body { background: #020617; color: #f8fafc; font-family: sans-serif; }
-        .card { background: #1e293b; border: 1px solid #334155; border-radius: 1rem; }
-        .btn-action { transition: all 0.2s; text-transform: uppercase; font-weight: 900; font-size: 10px; border-radius: 8px; }
-        .btn-action:active { transform: scale(0.95); }
+        :root { --ch-blue: #0054a6; --ch-red: #ed1c24; --success: #28a745; --bg: #f4f7f6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); padding: 15px; }
+
+        .header { background: var(--ch-blue); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        h2 { color: var(--ch-blue); font-size: 14px; text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; outline: none; }
+        .btn { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 12px; }
+        .btn-blue { background: var(--ch-blue); width: 100%; }
+        .btn-green { background: var(--success); flex: 1; }
+        .btn-red { background: var(--ch-red); flex: 1; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .info-item { background: white; padding: 8px; border-radius: 8px; border: 1px solid #eee; }
+        .info-item label { display: block; font-size: 9px; color: #888; font-weight: bold; }
+        .info-item span { font-size: 13px; font-weight: 700; }
+
+        .pending-card { background: white; border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-top: 4px solid var(--ch-red); }
+        .pending-card img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin: 10px 0; border: 1px solid #ccc; cursor: pointer; background: #eee; }
+        
+        .user-list { max-height: 200px; overflow-y: auto; }
+        .user-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; cursor: pointer; }
+        .user-row:hover { background: #f0f7ff; }
     </style>
 </head>
-<body class="p-4 pb-20">
+<body>
 
-    <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b border-slate-800 pb-4">
-        <div>
-            <h1 class="text-2xl font-black text-blue-500 italic uppercase">Gestão Zakwork</h1>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Painel de Controlo Total (2026)</p>
-        </div>
-        <div class="flex gap-2">
-            <button onclick="location.reload()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 hover:bg-slate-700"><i class="fas fa-sync"></i></button>
-        </div>
-    </header>
-
-    <div class="grid lg:grid-cols-2 gap-6">
-        
-        <section class="card p-5">
-            <h2 class="text-blue-400 font-black mb-4 uppercase text-xs flex items-center gap-2">
-                <i class="fas fa-file-invoice-dollar"></i> Validação de Depósitos
-            </h2>
-            <div id="list-dep" class="space-y-4 max-h-[500px] overflow-y-auto pr-2 text-xs italic text-slate-500 text-center">A carregar...</div>
-        </section>
-
-        <section class="card p-5">
-            <h2 class="text-orange-400 font-black mb-4 uppercase text-xs flex items-center gap-2">
-                <i class="fas fa-wallet"></i> Solicitações de Saque
-            </h2>
-            <div id="list-wit" class="space-y-4 max-h-[500px] overflow-y-auto pr-2 text-xs italic text-slate-500 text-center">Aguardando...</div>
-        </section>
-
-        <section class="card p-5 lg:col-span-2 overflow-hidden">
-            <h2 class="text-purple-400 font-black mb-4 uppercase text-xs flex items-center gap-2">
-                <i class="fas fa-users-cog"></i> Gestão de Utilizadores & Recuperação
-            </h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-[11px] font-bold min-w-[800px]">
-                    <thead class="bg-slate-900/50 text-slate-500 uppercase">
-                        <tr>
-                            <th class="p-3">ID / Telefone</th>
-                            <th class="p-3">Senha Atual</th>
-                            <th class="p-3">Saldo (KZ)</th>
-                            <th class="p-3">Dados Bancários (IBAN)</th>
-                            <th class="p-3 text-center">Ações Rápidas</th>
-                        </tr>
-                    </thead>
-                    <tbody id="list-users" class="divide-y divide-slate-800"></tbody>
-                </table>
-            </div>
-        </section>
+    <div class="header">
+        <div><strong>CHEVRON ADMIN</strong><br><small>Painel de Gestão Angola</small></div>
+        <div style="text-align:right;"><small>CLIENTES</small><br><strong id="countU">0</strong></div>
     </div>
 
-    <div id="m-img" class="fixed inset-0 bg-black/95 z-[100] hidden flex items-center justify-center p-4" onclick="this.classList.add('hidden')">
-        <img id="img-full" src="" class="max-w-full max-h-full shadow-2xl rounded-lg">
+    <div class="card">
+        <h2>🔍 Gestão de Usuário</h2>
+        <div style="display:flex; gap:5px; margin-bottom:10px;">
+            <input type="number" id="inpSearch" placeholder="Número (ex: 943692688)">
+            <button class="btn btn-blue" style="width:80px;" onclick="buscar()">BUSCAR</button>
+        </div>
+
+        <div id="painelUser" style="display:none; margin-top:15px; padding-top:15px; border-top: 1px dashed #ccc;">
+            <div class="info-grid">
+                <div class="info-item"><label>SALDO ATUAL</label><span id="resSaldo">0 Kz</span></div>
+                <div class="info-item"><label>SENHA</label><span id="resPass">---</span></div>
+                <div class="info-item"><label>IBAN CADASTRADO</label><span id="resIban">---</span></div>
+                <div class="info-item"><label>REDE (CONVIDADOS)</label><span id="resConv">0</span></div>
+            </div>
+            
+            <label style="font-size:10px; font-weight:bold;">AJUSTAR SALDO DIRETAMENTE:</label>
+            <input type="number" id="valAjuste" placeholder="Valor em Kwanza">
+            <div style="display:flex; gap:5px; margin-bottom:15px;">
+                <button class="btn btn-green" onclick="ajustar('add')">ADICIONAR (+) </button>
+                <button class="btn btn-red" onclick="ajustar('sub')">REMOVER (-)</button>
+            </div>
+
+            <label style="font-size:10px; font-weight:bold;">MUDAR PALAVRA-PASSE:</label>
+            <input type="text" id="newPass" placeholder="Nova Senha">
+            <button class="btn btn-blue" style="background:#444;" onclick="salvarSenha()">GRAVAR NOVA SENHA</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="border-bottom-color: var(--success);">📥 Comprovativos de Depósito</h2>
+        <div id="listaRecargas"></div>
+    </div>
+
+    <div class="card">
+        <h2 style="border-bottom-color: orange;">💸 Pedidos de Saque</h2>
+        <div id="listaSaques"></div>
+    </div>
+
+    <div class="card">
+        <h2>👥 Clientes Registados</h2>
+        <div class="user-list" id="todosUsers"></div>
     </div>
 
     <script>
-        const fb = { apiKey: "AIzaSyC3SurEz7aLcHG4yBUq5zrGBPOb2mvLpZ4", authDomain: "fir-6e9ec.firebaseapp.com", databaseURL: "https://fir-6e9ec-default-rtdb.firebaseio.com/", projectId: "fir-6e9ec", storageBucket: "fir-6e9ec.firebasestorage.app", messagingSenderId: "579697818964", appId: "1:579697818964:web:c05f427bd4460697431cc1" };
-        firebase.initializeApp(fb); const db = firebase.database();
+        let target = "";
 
-        // --- 1. GESTÃO DE DEPÓSITOS ---
-        db.ref('depositos_pendentes').on('value', snap => {
-            const list = document.getElementById('list-dep'); list.innerHTML = '';
-            snap.forEach(s => {
-                const d = s.val(); if(d.status === 'Pendente') {
-                    list.innerHTML += `
-                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
-                        <div class="flex justify-between font-black text-white mb-2"><span>${d.user}</span><span>${d.valor} KZ</span></div>
-                        <img src="${d.comprovativo}" class="w-full h-24 object-cover rounded-lg mb-3 cursor-pointer border border-slate-600" onclick="vImg('${d.comprovativo}')">
-                        <div class="flex gap-1">
-                            <button onclick="admDep('${s.key}','${d.user}',${d.valor},'Aprovado')" class="flex-1 bg-green-600 p-2 btn-action">Aprovar</button>
-                            <button onclick="admDep('${s.key}','${d.user}',0,'Recusado')" class="flex-1 bg-red-600 p-2 btn-action">Rejeitar</button>
+        function renderGeral() {
+            let uCount = 0;
+            const tU = document.getElementById('todosUsers'); 
+            tU.innerHTML = "";
+            
+            for(let i=0; i<localStorage.length; i++){
+                let k = localStorage.key(i);
+                if(k.startsWith('user_')){
+                    uCount++;
+                    let t = k.replace('user_','');
+                    let s = localStorage.getItem('saldo_'+t) || 0;
+                    tU.innerHTML += `<div class="user-row" onclick="selecionar('${t}')">
+                        <span>+244 ${t}</span> <strong>${parseFloat(s).toLocaleString()} Kz</strong>
+                    </div>`;
+                }
+            }
+            document.getElementById('countU').innerText = uCount;
+            renderPendencias();
+        }
+
+        function selecionar(t) { document.getElementById('inpSearch').value = t; buscar(); }
+
+        function buscar() {
+            let t = document.getElementById('inpSearch').value.trim();
+            if(localStorage.getItem('user_'+t)) {
+                target = t;
+                document.getElementById('painelUser').style.display = 'block';
+                document.getElementById('resSaldo').innerText = parseFloat(localStorage.getItem('saldo_'+t)).toLocaleString() + " Kz";
+                document.getElementById('resPass').innerText = localStorage.getItem('user_'+t);
+                document.getElementById('resIban').innerText = localStorage.getItem('iban_'+t) || "Não cadastrado";
+                
+                let c = 0;
+                for(let i=0; i<localStorage.length; i++) {
+                    if(localStorage.key(i).startsWith('padrinho_') && localStorage.getItem(localStorage.key(i)) === t) c++;
+                }
+                document.getElementById('resConv').innerText = c;
+            } else { alert("Usuário não encontrado!"); }
+        }
+
+        function salvarSenha() {
+            let p = document.getElementById('newPass').value;
+            if(!p) return alert("Digita uma nova senha!");
+            localStorage.setItem('user_'+target, p);
+            alert("Senha alterada!");
+            buscar();
+        }
+
+        function ajustar(tipo) {
+            let v = parseFloat(document.getElementById('valAjuste').value);
+            if(!v) return alert("Digita um valor!");
+            let s = parseFloat(localStorage.getItem('saldo_'+target)) || 0;
+            let novo = tipo === 'add' ? s + v : s - v;
+            localStorage.setItem('saldo_'+target, novo.toFixed(2));
+            buscar(); renderGeral();
+            alert("Saldo atualizado com sucesso!");
+        }
+
+        function renderPendencias() {
+            const rB = document.getElementById('listaRecargas'); rB.innerHTML = "";
+            const sB = document.getElementById('listaSaques'); sB.innerHTML = "";
+            let temR = false, temS = false;
+
+            for(let i=0; i<localStorage.length; i++) {
+                let k = localStorage.key(i);
+                
+                // RECARGAS
+                if(k.startsWith('recarga_env_')){
+                    temR = true;
+                    let t = k.replace('recarga_env_','');
+                    let d = JSON.parse(localStorage.getItem(k));
+                    rB.innerHTML += `<div class="pending-card" style="border-top-color:var(--success)">
+                        <strong>CLIENTE: +244 ${t}</strong><br>
+                        <span>Valor no Print: ${parseFloat(d.valor).toLocaleString()} Kz</span><br>
+                        <img src="${d.imagem}" onclick="window.open(this.src)">
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn btn-green" onclick="decidirR('${t}', ${d.valor}, 'ok')">APROVAR DINHEIRO</button>
+                            <button class="btn btn-red" onclick="decidirR('${t}', 0, 'no')">REJEITAR FOTO</button>
                         </div>
                     </div>`;
                 }
-            });
-            if(!list.innerHTML) list.innerHTML = "Sem depósitos pendentes.";
-        });
 
-        // --- 2. GESTÃO DE SAQUES ---
-        db.ref('saques_pendentes').on('value', snap => {
-            const list = document.getElementById('list-wit'); list.innerHTML = '';
-            snap.forEach(s => {
-                const d = s.val(); if(d.status === 'Pendente') {
-                    list.innerHTML += `
-                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
-                        <div class="flex justify-between font-black text-orange-400 mb-2"><span>${d.user}</span><span>${d.valor_liquido} KZ</span></div>
-                        <div class="bg-black/30 p-2 rounded text-[9px] font-mono text-slate-300 mb-3 border-l-2 border-orange-500">
-                            IBAN: ${d.iban || 'NÃO VINCULADO'}<br>TITULAR: ${d.titular || 'N/A'}
-                        </div>
-                        <div class="flex gap-1">
-                            <button onclick="admWit('${s.key}','Pago')" class="flex-1 bg-blue-600 p-2 btn-action">Confirmar Pago</button>
-                            <button onclick="admWit('${s.key}','Recusado','${d.user}',${d.valor_bruto})" class="flex-1 bg-red-600 p-2 btn-action">Rejeitar/Devolver</button>
-                        </div>
-                    </div>`;
+                // SAQUES COM OPÇÃO DE REJEITAR
+                if(k.startsWith('hist_saques_')){
+                    let t = k.replace('hist_saques_','');
+                    let lista = JSON.parse(localStorage.getItem(k));
+                    lista.forEach((s, idx) => {
+                        if(s.status === "Pendente") {
+                            temS = true;
+                            sB.innerHTML += `<div class="pending-card" style="border-top-color: orange;">
+                                <strong>PEDIDO DE SAQUE: +244 ${t}</strong><br>
+                                Valor a Transferir: <span style="color:var(--success); font-weight:bold;">${parseFloat(s.valor).toLocaleString()} Kz</span><br>
+                                IBAN: <span style="color:var(--ch-blue); font-weight:bold;">${localStorage.getItem('iban_'+t) || '---'}</span><br>
+                                <div style="display:flex; gap:5px; margin-top:10px;">
+                                    <button class="btn btn-green" onclick="pagarS('${t}', ${idx})">CONFIRMAR PAGAMENTO</button>
+                                    <button class="btn btn-red" onclick="rejeitarS('${t}', ${idx}, ${s.valor})">REJEITAR E DEVOLVER</button>
+                                </div>
+                            </div>`;
+                        }
+                    });
                 }
-            });
-            if(!list.innerHTML) list.innerHTML = "Sem saques pendentes.";
-        });
-
-        // --- 3. GESTÃO DE USUÁRIOS (RECUPERAR SENHA, SALDO, BANIR) ---
-        db.ref('users').on('value', snap => {
-            const list = document.getElementById('list-users'); list.innerHTML = '';
-            snap.forEach(s => {
-                const u = s.val(); if(u.banido) return; // Ocultar banidos da lista principal
-                list.innerHTML += `
-                <tr class="hover:bg-white/5 transition-all">
-                    <td class="p-3 text-blue-400">${s.key}</td>
-                    <td class="p-3 text-yellow-500 font-mono">${u.pass || '----'}</td>
-                    <td class="p-3 text-green-500">${(u.saldo || 0).toLocaleString()} KZ</td>
-                    <td class="p-3 text-[9px] text-slate-400 font-mono">${u.iban || 'Sem IBAN'} <br> <span class="text-white">${u.nome_completo || ''}</span></td>
-                    <td class="p-3 space-x-1 flex justify-center">
-                        <button onclick="editSaldo('${s.key}',${u.saldo||0})" class="bg-slate-700 p-2 btn-action" title="Add/Reduzir Saldo"><i class="fas fa-coins"></i></button>
-                        <button onclick="editPass('${s.key}')" class="bg-blue-600 p-2 btn-action" title="Mudar Senha"><i class="fas fa-key"></i></button>
-                        <button onclick="banUser('${s.key}')" class="bg-red-600 p-2 btn-action" title="Banir"><i class="fas fa-user-slash"></i></button>
-                    </td>
-                </tr>`;
-            });
-        });
-
-        // --- FUNÇÕES DE AÇÃO ---
-        function admDep(id, u, v, st) { 
-            if(st === 'Aprovado') db.ref('users/'+u+'/saldo').transaction(s => (s||0)+v);
-            db.ref('depositos_pendentes/'+id).update({status: st}).then(() => alert("Depósito "+st));
+            }
+            if(!temR) rB.innerHTML = "<p style='text-align:center; font-size:11px; color:#999;'>Nenhum comprovativo pendente.</p>";
+            if(!temS) sB.innerHTML = "<p style='text-align:center; font-size:11px; color:#999;'>Nenhum saque aguardando pagamento.</p>";
         }
 
-        function admWit(id, st, u, v) {
-            if(st === 'Recusado') db.ref('users/'+u+'/saldo').transaction(s => (s||0)+v);
-            db.ref('saques_pendentes/'+id).update({status: st}).then(() => alert("Saque "+st));
+        function decidirR(t, v, acao) {
+            if(acao === 'ok') {
+                let s = parseFloat(localStorage.getItem('saldo_'+t)) || 0;
+                localStorage.setItem('saldo_'+t, (s + v).toFixed(2));
+                alert("Depósito aprovado e saldo adicionado!");
+            } else { alert("Recarga cancelada pelo administrador."); }
+            localStorage.removeItem('recarga_env_'+t);
+            renderGeral();
         }
 
-        function editSaldo(u, s) { 
-            const n = prompt("SALDO ATUAL: "+s+" KZ\nInsira o NOVO SALDO TOTAL:", s);
-            if(n !== null) db.ref('users/'+u).update({saldo: parseFloat(n)});
+        function pagarS(t, idx) {
+            let l = JSON.parse(localStorage.getItem('hist_saques_'+t));
+            l[idx].status = "Pago ✅";
+            localStorage.setItem('hist_saques_'+t, JSON.stringify(l));
+            alert("Sucesso! Marcado como pago.");
+            renderGeral();
         }
 
-        function editPass(u) {
-            const p = prompt("Nova senha para o usuário "+u+":");
-            if(p) db.ref('users/'+u).update({pass: p}).then(() => alert("Senha alterada!"));
-        }
+        function rejeitarS(t, idx, valorRetirado) {
+            if(confirm("Deseja rejeitar este saque? O dinheiro voltará para a conta do cliente.")) {
+                let l = JSON.parse(localStorage.getItem('hist_saques_'+t));
+                l[idx].status = "Rejeitado ❌";
+                localStorage.setItem('hist_saques_'+t, JSON.stringify(l));
 
-        function banUser(u) {
-            if(confirm("Desejas BANIR permanentemente "+u+"?")) {
-                db.ref('users/'+u).update({banido: true, saldo: 0}).then(() => alert("Usuário Banido!"));
+                // Devolve o valor ao saldo do cliente (ajustando a taxa se necessário)
+                let sAtual = parseFloat(localStorage.getItem('saldo_'+t)) || 0;
+                let valorBruto = valorRetirado / 0.9; // Devolve o valor sem o desconto da taxa
+                localStorage.setItem('saldo_'+t, (sAtual + valorBruto).toFixed(2));
+
+                alert("Saque rejeitado! O saldo foi devolvido ao usuário.");
+                renderGeral();
             }
         }
 
-        function vImg(src) { document.getElementById('img-full').src = src; document.getElementById('m-img').classList.remove('hidden'); }
+        renderGeral();
     </script>
 </body>
-</html>
+    </html>
