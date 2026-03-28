@@ -3,229 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chevron Admin | Gestão de Ativos</title>
+    <title>Chevron Admin | Gestão em Nuvem</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         :root { --ch-blue: #0054a6; --ch-red: #ed1c24; --success: #28a745; --bg: #f4f7f6; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); padding: 15px; }
-
         .header { background: var(--ch-blue); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        
         h2 { color: var(--ch-blue); font-size: 14px; text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        
         input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; outline: none; }
         .btn { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 12px; }
         .btn-blue { background: var(--ch-blue); width: 100%; }
         .btn-green { background: var(--success); flex: 1; }
         .btn-red { background: var(--ch-red); flex: 1; }
-
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .info-item { background: white; padding: 8px; border-radius: 8px; border: 1px solid #eee; }
+        .info-item { background: #f9f9f9; padding: 8px; border-radius: 8px; border: 1px solid #eee; }
         .info-item label { display: block; font-size: 9px; color: #888; font-weight: bold; }
         .info-item span { font-size: 13px; font-weight: 700; }
-
-        .pending-card { background: white; border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-top: 4px solid var(--ch-red); }
-        .pending-card img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin: 10px 0; border: 1px solid #ccc; cursor: pointer; background: #eee; }
-        
-        .user-list { max-height: 200px; overflow-y: auto; }
         .user-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; cursor: pointer; }
         .user-row:hover { background: #f0f7ff; }
+        .pending-card { background: white; border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-top: 4px solid var(--ch-red); }
+        .pending-card img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin: 10px 0; background: #eee; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div><strong>CHEVRON ADMIN</strong><br><small>Painel de Gestão Angola</small></div>
-        <div style="text-align:right;"><small>CLIENTES</small><br><strong id="countU">0</strong></div>
+        <div><strong>CHEVRON ADMIN CLOUD</strong><br><small>Controle Global Angola</small></div>
+        <div style="text-align:right;"><small>TOTAL CLIENTES</small><br><strong id="countU">0</strong></div>
     </div>
 
     <div class="card">
-        <h2>🔍 Gestão de Usuário</h2>
-        <div style="display:flex; gap:5px; margin-bottom:10px;">
-            <input type="number" id="inpSearch" placeholder="Número (ex: 943692688)">
+        <h2>🔍 Buscar Usuário (Número)</h2>
+        <div style="display:flex; gap:5px;">
+            <input type="number" id="inpSearch" placeholder="943692688">
             <button class="btn btn-blue" style="width:80px;" onclick="buscar()">BUSCAR</button>
         </div>
 
         <div id="painelUser" style="display:none; margin-top:15px; padding-top:15px; border-top: 1px dashed #ccc;">
             <div class="info-grid">
-                <div class="info-item"><label>SALDO ATUAL</label><span id="resSaldo">0 Kz</span></div>
+                <div class="info-item"><label>SALDO</label><span id="resSaldo">0 Kz</span></div>
                 <div class="info-item"><label>SENHA</label><span id="resPass">---</span></div>
-                <div class="info-item"><label>IBAN CADASTRADO</label><span id="resIban">---</span></div>
-                <div class="info-item"><label>REDE (CONVIDADOS)</label><span id="resConv">0</span></div>
             </div>
-            
-            <label style="font-size:10px; font-weight:bold;">AJUSTAR SALDO DIRETAMENTE:</label>
-            <input type="number" id="valAjuste" placeholder="Valor em Kwanza">
-            <div style="display:flex; gap:5px; margin-bottom:15px;">
-                <button class="btn btn-green" onclick="ajustar('add')">ADICIONAR (+) </button>
+            <input type="number" id="valAjuste" placeholder="Valor Kwanza">
+            <div style="display:flex; gap:5px;">
+                <button class="btn btn-green" onclick="ajustar('add')">ADICIONAR (+)</button>
                 <button class="btn btn-red" onclick="ajustar('sub')">REMOVER (-)</button>
             </div>
-
-            <label style="font-size:10px; font-weight:bold;">MUDAR PALAVRA-PASSE:</label>
-            <input type="text" id="newPass" placeholder="Nova Senha">
-            <button class="btn btn-blue" style="background:#444;" onclick="salvarSenha()">GRAVAR NOVA SENHA</button>
         </div>
     </div>
 
     <div class="card">
-        <h2 style="border-bottom-color: var(--success);">📥 Comprovativos de Depósito</h2>
+        <h2>📥 Depósitos Pendentes</h2>
         <div id="listaRecargas"></div>
     </div>
 
     <div class="card">
-        <h2 style="border-bottom-color: orange;">💸 Pedidos de Saque</h2>
-        <div id="listaSaques"></div>
-    </div>
-
-    <div class="card">
-        <h2>👥 Clientes Registados</h2>
-        <div class="user-list" id="todosUsers"></div>
+        <h2>👥 Todos os Clientes na Nuvem</h2>
+        <div id="todosUsers"></div>
     </div>
 
     <script>
+        // CONFIGURAÇÃO DO SEU FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3SurEz7aLcHG4yBUq5zrGBPOb2mvLpZ4",
+            authDomain: "fir-6e9ec.firebaseapp.com",
+            databaseURL: "https://fir-6e9ec-default-rtdb.firebaseio.com",
+            projectId: "fir-6e9ec"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
         let target = "";
 
-        function renderGeral() {
-            let uCount = 0;
-            const tU = document.getElementById('todosUsers'); 
-            tU.innerHTML = "";
-            
-            for(let i=0; i<localStorage.length; i++){
-                let k = localStorage.key(i);
-                if(k.startsWith('user_')){
-                    uCount++;
-                    let t = k.replace('user_','');
-                    let s = localStorage.getItem('saldo_'+t) || 0;
-                    tU.innerHTML += `<div class="user-row" onclick="selecionar('${t}')">
-                        <span>+244 ${t}</span> <strong>${parseFloat(s).toLocaleString()} Kz</strong>
-                    </div>`;
+        // ESCUTAR TODOS OS USUÁRIOS EM TEMPO REAL
+        function monitorarUsuarios() {
+            db.ref('contas').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const tU = document.getElementById('todosUsers');
+                tU.innerHTML = "";
+                let count = 0;
+
+                if (data) {
+                    for (let tel in data) {
+                        count++;
+                        let user = data[tel];
+                        tU.innerHTML += `
+                            <div class="user-row" onclick="selecionar('${tel}')">
+                                <span>+244 ${tel}</span>
+                                <strong>${parseFloat(user.saldo || 0).toLocaleString()} Kz</strong>
+                            </div>`;
+                    }
                 }
-            }
-            document.getElementById('countU').innerText = uCount;
-            renderPendencias();
+                document.getElementById('countU').innerText = count;
+            });
+        }
+
+        // ESCUTAR RECARGAS
+        function monitorarRecargas() {
+            db.ref('pendencias/recargas').on('value', (snapshot) => {
+                const list = document.getElementById('listaRecargas');
+                list.innerHTML = "";
+                const data = snapshot.val();
+                if (!data) {
+                    list.innerHTML = "<p style='font-size:11px; color:#999;'>Sem depósitos pendentes.</p>";
+                    return;
+                }
+                for (let id in data) {
+                    let r = data[id];
+                    list.innerHTML += `
+                        <div class="pending-card">
+                            <strong>CLIENTE: +244 ${r.tel}</strong><br>
+                            <span>Valor: ${parseFloat(r.valor).toLocaleString()} Kz</span><br>
+                            <img src="${r.foto}" onclick="window.open(this.src)">
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn btn-green" onclick="aprovarR('${id}', '${r.tel}', ${r.valor})">APROVAR</button>
+                                <button class="btn btn-red" onclick="rejeitarR('${id}')">REJEITAR</button>
+                            </div>
+                        </div>`;
+                }
+            });
         }
 
         function selecionar(t) { document.getElementById('inpSearch').value = t; buscar(); }
 
         function buscar() {
-            let t = document.getElementById('inpSearch').value.trim();
-            if(localStorage.getItem('user_'+t)) {
-                target = t;
-                document.getElementById('painelUser').style.display = 'block';
-                document.getElementById('resSaldo').innerText = parseFloat(localStorage.getItem('saldo_'+t)).toLocaleString() + " Kz";
-                document.getElementById('resPass').innerText = localStorage.getItem('user_'+t);
-                document.getElementById('resIban').innerText = localStorage.getItem('iban_'+t) || "Não cadastrado";
-                
-                let c = 0;
-                for(let i=0; i<localStorage.length; i++) {
-                    if(localStorage.key(i).startsWith('padrinho_') && localStorage.getItem(localStorage.key(i)) === t) c++;
-                }
-                document.getElementById('resConv').innerText = c;
-            } else { alert("Usuário não encontrado!"); }
-        }
-
-        function salvarSenha() {
-            let p = document.getElementById('newPass').value;
-            if(!p) return alert("Digita uma nova senha!");
-            localStorage.setItem('user_'+target, p);
-            alert("Senha alterada!");
-            buscar();
+            target = document.getElementById('inpSearch').value.trim();
+            db.ref('contas/' + target).once('value').then((snap) => {
+                const u = snap.val();
+                if (u) {
+                    document.getElementById('painelUser').style.display = 'block';
+                    document.getElementById('resSaldo').innerText = parseFloat(u.saldo || 0).toLocaleString() + " Kz";
+                    document.getElementById('resPass').innerText = u.senha;
+                } else { alert("Não encontrado no banco de dados!"); }
+            });
         }
 
         function ajustar(tipo) {
             let v = parseFloat(document.getElementById('valAjuste').value);
-            if(!v) return alert("Digita um valor!");
-            let s = parseFloat(localStorage.getItem('saldo_'+target)) || 0;
-            let novo = tipo === 'add' ? s + v : s - v;
-            localStorage.setItem('saldo_'+target, novo.toFixed(2));
-            buscar(); renderGeral();
-            alert("Saldo atualizado com sucesso!");
+            if (!v || !target) return alert("Erro nos dados!");
+            
+            db.ref('contas/' + target).once('value').then(s => {
+                let saldoAtual = parseFloat(s.val().saldo || 0);
+                let novo = tipo === 'add' ? saldoAtual + v : saldoAtual - v;
+                db.ref('contas/' + target + '/saldo').set(novo).then(() => {
+                    alert("Saldo Atualizado na Nuvem!");
+                    buscar();
+                });
+            });
         }
 
-        function renderPendencias() {
-            const rB = document.getElementById('listaRecargas'); rB.innerHTML = "";
-            const sB = document.getElementById('listaSaques'); sB.innerHTML = "";
-            let temR = false, temS = false;
-
-            for(let i=0; i<localStorage.length; i++) {
-                let k = localStorage.key(i);
-                
-                // RECARGAS
-                if(k.startsWith('recarga_env_')){
-                    temR = true;
-                    let t = k.replace('recarga_env_','');
-                    let d = JSON.parse(localStorage.getItem(k));
-                    rB.innerHTML += `<div class="pending-card" style="border-top-color:var(--success)">
-                        <strong>CLIENTE: +244 ${t}</strong><br>
-                        <span>Valor no Print: ${parseFloat(d.valor).toLocaleString()} Kz</span><br>
-                        <img src="${d.imagem}" onclick="window.open(this.src)">
-                        <div style="display:flex; gap:5px;">
-                            <button class="btn btn-green" onclick="decidirR('${t}', ${d.valor}, 'ok')">APROVAR DINHEIRO</button>
-                            <button class="btn btn-red" onclick="decidirR('${t}', 0, 'no')">REJEITAR FOTO</button>
-                        </div>
-                    </div>`;
-                }
-
-                // SAQUES COM OPÇÃO DE REJEITAR
-                if(k.startsWith('hist_saques_')){
-                    let t = k.replace('hist_saques_','');
-                    let lista = JSON.parse(localStorage.getItem(k));
-                    lista.forEach((s, idx) => {
-                        if(s.status === "Pendente") {
-                            temS = true;
-                            sB.innerHTML += `<div class="pending-card" style="border-top-color: orange;">
-                                <strong>PEDIDO DE SAQUE: +244 ${t}</strong><br>
-                                Valor a Transferir: <span style="color:var(--success); font-weight:bold;">${parseFloat(s.valor).toLocaleString()} Kz</span><br>
-                                IBAN: <span style="color:var(--ch-blue); font-weight:bold;">${localStorage.getItem('iban_'+t) || '---'}</span><br>
-                                <div style="display:flex; gap:5px; margin-top:10px;">
-                                    <button class="btn btn-green" onclick="pagarS('${t}', ${idx})">CONFIRMAR PAGAMENTO</button>
-                                    <button class="btn btn-red" onclick="rejeitarS('${t}', ${idx}, ${s.valor})">REJEITAR E DEVOLVER</button>
-                                </div>
-                            </div>`;
-                        }
-                    });
-                }
-            }
-            if(!temR) rB.innerHTML = "<p style='text-align:center; font-size:11px; color:#999;'>Nenhum comprovativo pendente.</p>";
-            if(!temS) sB.innerHTML = "<p style='text-align:center; font-size:11px; color:#999;'>Nenhum saque aguardando pagamento.</p>";
+        function aprovarR(id, tel, valor) {
+            db.ref('contas/' + tel).once('value').then(s => {
+                let sAtual = parseFloat(s.val().saldo || 0);
+                db.ref('contas/' + tel + '/saldo').set(sAtual + valor);
+                db.ref('pendencias/recargas/' + id).remove();
+                alert("Dinheiro enviado para o cliente!");
+            });
         }
 
-        function decidirR(t, v, acao) {
-            if(acao === 'ok') {
-                let s = parseFloat(localStorage.getItem('saldo_'+t)) || 0;
-                localStorage.setItem('saldo_'+t, (s + v).toFixed(2));
-                alert("Depósito aprovado e saldo adicionado!");
-            } else { alert("Recarga cancelada pelo administrador."); }
-            localStorage.removeItem('recarga_env_'+t);
-            renderGeral();
+        function rejeitarR(id) {
+            if(confirm("Rejeitar este comprovativo?")) db.ref('pendencias/recargas/' + id).remove();
         }
 
-        function pagarS(t, idx) {
-            let l = JSON.parse(localStorage.getItem('hist_saques_'+t));
-            l[idx].status = "Pago ✅";
-            localStorage.setItem('hist_saques_'+t, JSON.stringify(l));
-            alert("Sucesso! Marcado como pago.");
-            renderGeral();
-        }
-
-        function rejeitarS(t, idx, valorRetirado) {
-            if(confirm("Deseja rejeitar este saque? O dinheiro voltará para a conta do cliente.")) {
-                let l = JSON.parse(localStorage.getItem('hist_saques_'+t));
-                l[idx].status = "Rejeitado ❌";
-                localStorage.setItem('hist_saques_'+t, JSON.stringify(l));
-
-                // Devolve o valor ao saldo do cliente (ajustando a taxa se necessário)
-                let sAtual = parseFloat(localStorage.getItem('saldo_'+t)) || 0;
-                let valorBruto = valorRetirado / 0.9; // Devolve o valor sem o desconto da taxa
-                localStorage.setItem('saldo_'+t, (sAtual + valorBruto).toFixed(2));
-
-                alert("Saque rejeitado! O saldo foi devolvido ao usuário.");
-                renderGeral();
-            }
-        }
-
-        renderGeral();
+        monitorarUsuarios();
+        monitorarRecargas();
     </script>
 </body>
-    </html>
+</html>
