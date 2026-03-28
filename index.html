@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chevron VIP | Angola Corporate</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         :root { --ch-blue: #0054a6; --ch-red: #ed1c24; --success: #28a745; --bg: #f4f7f6; --dark: #1a1a1b; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
@@ -61,7 +63,7 @@
                 <button class="tab-btn active" id="btnT1" onclick="setAuth('login')">ENTRAR</button>
                 <button class="tab-btn" id="btnT2" onclick="setAuth('reg')">REGISTAR</button>
             </div>
-            <input type="number" id="uTel" placeholder="Telemóvel">
+            <input type="number" id="uTel" placeholder="Telemóvel (ex: 943...)">
             <input type="password" id="uPass" placeholder="Palavra-passe">
             <div id="divRef" class="hidden">
                 <input type="number" id="uRef" placeholder="ID de Convite (Opcional)">
@@ -94,14 +96,9 @@
 
         <div id="p-profile" class="page">
             <div style="padding:20px;">
-                <button class="btn-main" style="background:white; color:#333; border:1px solid #eee; margin-bottom:12px;" onclick="openM('recharge')">💰 RECARREGAR</button>
-                <button class="btn-main" style="background:white; color:#333; border:1px solid #eee; margin-bottom:12px;" onclick="openM('withdraw')">💸 LEVANTAMENTO</button>
-                
-                <div style="background:#eef6ff; padding:20px; border-radius:15px; border:1px dashed var(--ch-blue); text-align:center; margin-top:10px;">
-                    <p style="font-size:11px; color:var(--ch-blue); font-weight:bold;">🎁 BÓNUS DE AFILIADO (10%)</p>
-                    <button class="btn-main" style="margin-top:10px; background:var(--ch-blue);" onclick="copiarLink()">🔗 COPIAR LINK DE CONVITE</button>
-                </div>
-
+                <button class="btn-main" onclick="openM('recharge')">💰 RECARREGAR</button>
+                <button class="btn-main" onclick="openM('withdraw')">💸 LEVANTAMENTO</button>
+                <button class="btn-main" onclick="copiarLink()">🔗 COPIAR LINK DE CONVITE</button>
                 <button class="btn-main" style="background:var(--ch-red); margin-top:30px;" onclick="location.reload()">SAIR</button>
             </div>
         </div>
@@ -118,209 +115,146 @@
         <select id="selBanco">
             <option value="ViaExpress">VIA EXPRESS: 921 054 122</option>
             <option value="BFA">BFA: 0006 0000 2870 9134 3015 1</option>
-            <option value="BAI">BAI: 0040 0000 0927 0667 1014 1</option>
         </select>
         <input type="number" id="vRec" placeholder="Valor (Kz)">
-        <p style="font-size:11px; margin-bottom:5px;">Anexe o Print:</p>
         <input type="file" id="fInp" accept="image/*">
         <button class="btn-main" onclick="confirmarRecarga()">ENVIAR COMPROVATIVO</button>
         <button class="btn-main" style="background:#888" onclick="closeM()">FECHAR</button>
     </div></div>
 
-    <div id="m-withdraw" class="modal"><div class="modal-content">
-        <h3>Solicitar Saque</h3>
-        <input type="text" id="wIban" placeholder="IBAN (AO06...)">
-        <input type="number" id="wVal" placeholder="Valor (Min 1.500)">
-        <button class="btn-main" style="background:var(--success)" onclick="execSacar()">SACAR AGORA</button>
-        <h4 style="margin-top:20px; font-size:12px; color:#666; border-bottom:1px solid #eee; padding-bottom:5px;">HISTÓRICO DE SAQUES:</h4>
-        <div id="histS" style="margin-top:10px;"></div>
-        <button class="btn-main" style="background:#888; margin-top:10px;" onclick="closeM()">VOLTAR</button>
-    </div></div>
-
     <script>
+        // CONFIGURAÇÃO FIREBASE (A tua chave)
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3SurEz7aLcHG4yBUq5zrGBPOb2mvLpZ4",
+            authDomain: "fir-6e9ec.firebaseapp.com",
+            databaseURL: "https://fir-6e9ec-default-rtdb.firebaseio.com",
+            projectId: "fir-6e9ec"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         let meuTel = "";
         let authMode = "login";
         let saldo = 0;
         let ativos = [];
-        let saques = [];
 
         const vips = [
-            { n: "VIP 1", p: 12400, l: 520.80 }, 
-            { n: "VIP 2", p: 45000, l: 1890.00 },
-            { n: "VIP 3", p: 100000, l: 4200.00 }, 
-            { n: "VIP 4", p: 250000, l: 10500.00 },
-            { n: "VIP 5", p: 500000, l: 21000.00 }, 
-            { n: "VIP 6", p: 1000000, l: 42000.00 }
+            { n: "VIP 1", p: 12400, l: 520.8 }, { n: "VIP 2", p: 45000, l: 1890 },
+            { n: "VIP 3", p: 100000, l: 4200 }, { n: "VIP 4", p: 250000, l: 10500 },
+            { n: "VIP 5", p: 500000, l: 21000 }, { n: "VIP 6", p: 1000000, l: 42000 }
         ];
-
-        window.onload = () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            if(urlParams.has('ref')) {
-                setAuth('reg');
-                document.getElementById('uRef').value = urlParams.get('ref');
-            }
-        };
 
         function notify(msg) {
             const t = document.getElementById('toast');
-            t.querySelector('span').innerText = msg;
-            t.classList.add('show');
+            t.querySelector('span').innerText = msg; t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        // --- NOVA FUNÇÃO PARA ENVIAR COMPROVANTE ---
-        function confirmarRecarga() {
-            const valor = document.getElementById('vRec').value;
-            const foto = document.getElementById('fInp').files[0];
-            
-            if(!valor || !foto) return notify("⚠️ Preencha o valor e o print!");
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const dados = { valor: valor, imagem: e.target.result };
-                localStorage.setItem('recarga_env_' + meuTel, JSON.stringify(dados));
-                notify("📩 Comprovativo enviado com sucesso!");
-                closeM();
-            };
-            reader.readAsDataURL(foto);
-        }
-
-        // RENDIMENTO REAL 24H
-        setInterval(() => {
-            if(ativos.length > 0 && meuTel) {
-                ativos.forEach(a => { 
-                    let inc = (a.l / 86400); 
-                    saldo += inc; 
-                    a.acum += inc; 
-                });
-                updateUI();
-                localStorage.setItem('saldo_'+meuTel, saldo.toFixed(4));
-                localStorage.setItem('ativos_'+meuTel, JSON.stringify(ativos));
-            }
-        }, 1000);
-
+        // LÓGICA DE LOGIN E REGISTO COM FIREBASE
         function handleAuth() {
-            const tel = document.getElementById('uTel').value;
-            const pass = document.getElementById('uPass').value;
-            const ref = document.getElementById('uRef').value;
+            const tel = document.getElementById('uTel').value.trim();
+            const pass = document.getElementById('uPass').value.trim();
+            const ref = document.getElementById('uRef').value.trim();
+
             if(!tel || !pass) return notify("⚠️ Preencha os campos!");
 
             if(authMode === "reg") {
-                if(localStorage.getItem('user_'+tel)) return notify("❌ Já existe uma conta!");
-                localStorage.setItem('user_'+tel, pass);
-                localStorage.setItem('saldo_'+tel, "1000.00");
-                localStorage.setItem('ativos_'+tel, "[]");
-                localStorage.setItem('hist_saques_'+tel, "[]");
-                if(ref) localStorage.setItem('padrinho_'+tel, ref);
-                notify("✅ Registado! Faça login.");
-                setAuth('login');
+                db.ref('contas/' + tel).once('value').then(snap => {
+                    if(snap.exists()) return notify("❌ Número já cadastrado!");
+                    
+                    db.ref('contas/' + tel).set({
+                        senha: pass,
+                        saldo: 1000, // Bónus inicial
+                        padrinho: ref || "direto",
+                        ativos: []
+                    }).then(() => {
+                        notify("✅ Conta Criada! Faça Login.");
+                        setAuth('login');
+                    });
+                });
             } else {
-                if(localStorage.getItem('user_'+tel) === pass) {
-                    meuTel = tel;
-                    saldo = parseFloat(localStorage.getItem('saldo_'+tel) || 1000);
-                    ativos = JSON.parse(localStorage.getItem('ativos_'+tel) || "[]");
-                    saques = JSON.parse(localStorage.getItem('hist_saques_'+tel) || "[]");
-                    document.getElementById('authPage').style.display = 'none';
-                    document.getElementById('mainApp').style.display = 'block';
-                    document.getElementById('uID').innerText = "+244 " + tel;
-                    renderVips(); updateUI(); notify("💎 Bem-vindo!");
-                } else { notify("❌ Dados incorretos!"); }
+                db.ref('contas/' + tel).once('value').then(snap => {
+                    const user = snap.val();
+                    if(user && user.senha === pass) {
+                        meuTel = tel;
+                        entrarNoApp();
+                    } else { notify("❌ Dados incorretos!"); }
+                });
             }
+        }
+
+        function entrarNoApp() {
+            // Monitorar saldo e dados em tempo real da nuvem
+            db.ref('contas/' + meuTel).on('value', snap => {
+                const user = snap.val();
+                saldo = parseFloat(user.saldo || 0);
+                ativos = user.ativos || [];
+                updateUI();
+                document.getElementById('uID').innerText = "+244 " + meuTel;
+            });
+            document.getElementById('authPage').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            renderVips();
         }
 
         function comprar(i) {
             if(saldo >= vips[i].p) {
-                saldo -= vips[i].p;
-                ativos.push({ ...vips[i], acum: 0 });
+                const novoSaldo = saldo - vips[i].p;
+                ativos.push({ ...vips[i], data: new Date().getTime() });
                 
-                let pad = localStorage.getItem('padrinho_'+meuTel);
-                if(pad) {
-                    let com = vips[i].p * 0.10;
-                    let sPad = parseFloat(localStorage.getItem('saldo_'+pad) || 0);
-                    localStorage.setItem('saldo_'+pad, (sPad + com).toFixed(2));
-                }
+                // Atualiza o usuário
+                db.ref('contas/' + meuTel).update({
+                    saldo: novoSaldo,
+                    ativos: ativos
+                });
 
-                localStorage.setItem('ativos_'+meuTel, JSON.stringify(ativos));
-                localStorage.setItem('saldo_'+meuTel, saldo.toFixed(2));
-                updateUI(); notify("✅ VIP Ativado!");
+                // Bónus para quem convidou
+                db.ref('contas/' + meuTel + '/padrinho').once('value').then(pSnap => {
+                    let pad = pSnap.val();
+                    if(pad && pad !== "direto") {
+                        db.ref('contas/' + pad + '/saldo').once('value').then(sSnap => {
+                            let sPad = parseFloat(sSnap.val() || 0);
+                            db.ref('contas/' + pad + '/saldo').set(sPad + (vips[i].p * 0.10));
+                        });
+                    }
+                });
+                notify("✅ VIP Ativado!");
             } else { notify("❌ Saldo insuficiente!"); }
         }
 
+        function confirmarRecarga() {
+            const val = document.getElementById('vRec').value;
+            const file = document.getElementById('fInp').files[0];
+            if(!val || !file) return notify("⚠️ Preencha tudo!");
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const idRecarga = Date.now();
+                db.ref('pendencias/recargas/' + idRecarga).set({
+                    tel: meuTel,
+                    valor: parseFloat(val),
+                    foto: e.target.result
+                }).then(() => {
+                    notify("📩 Comprovativo enviado!");
+                    closeM();
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Funções de Interface (Mantidas do original mas adaptadas)
         function renderVips() {
             document.getElementById('vipGrid').innerHTML = vips.map((v, i) => `
                 <div class="vip-card">
                     <div class="vip-badge">${v.n}</div>
-                    <strong style="color:var(--ch-blue); display:block; margin:8px 0;">Custo: ${v.p.toLocaleString()} Kz</strong>
-                    <div style="background:#f0f7ff; padding:5px; border-radius:8px; margin-bottom:10px;">
-                        <span style="font-size:11px; color:#555; display:block;">Rendimento Diário:</span>
-                        <strong style="font-size:13px; color:var(--success);">${v.l.toLocaleString()} Kz</strong>
-                    </div>
-                    <button class="btn-main" style="padding:10px; font-size:11px; margin-top:0;" onclick="comprar(${i})">ATIVAR AGORA</button>
+                    <strong>Custo: ${v.p.toLocaleString()} Kz</strong>
+                    <p style="font-size:11px; color:var(--success);">Ganha ${v.l.toLocaleString()} / dia</p>
+                    <button class="btn-main" style="padding:8px" onclick="comprar(${i})">ATIVAR</button>
                 </div>`).join('');
         }
 
-        function renderAssets() {
-            document.getElementById('listAssets').innerHTML = ativos.map(a => `
-                <div class="hist-item" style="border-left-color:var(--success)">
-                    <strong>${a.n} (Rendimento 24h)</strong><br>
-                    <span style="color:var(--success); font-size:16px; font-weight:800;">+ ${a.acum.toFixed(4)} Kz</span>
-                </div>`).join('') || "Sem ativos.";
-            
-            document.getElementById('listMissions').innerHTML = `
-                <div style="background:white; padding:15px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; border:1px solid #eee;">
-                    <div>Check-in Diário<br><small>+ 50 Kz Grátis</small></div>
-                    <button class="btn-main" style="width:90px; margin:0; padding:10px" onclick="checkin()">COLETAR</button>
-                </div>`;
-        }
-
-        function checkin() {
-            let hoje = new Date().toLocaleDateString();
-            if(localStorage.getItem('lc_'+meuTel) === hoje) return notify("⏳ Já coletou hoje!");
-            saldo += 50; localStorage.setItem('lc_'+meuTel, hoje); updateUI(); renderAssets(); notify("🎯 +50 Kz!");
-        }
-
-        function execSacar() {
-            let v = parseFloat(document.getElementById('wVal').value);
-            let ib = document.getElementById('wIban').value;
-            if(v < 1500 || v > saldo || !ib) return notify("❌ Valor ou IBAN inválido!");
-            
-            saldo -= v;
-            const agora = new Date();
-            const dataStr = agora.toLocaleDateString('pt-AO') + " " + agora.toLocaleTimeString('pt-AO', {hour:'2-digit', minute:'2-digit'});
-            
-            saques.unshift({valor: v*0.9, data: dataStr, status: "Pendente"});
-            localStorage.setItem('hist_saques_'+meuTel, JSON.stringify(saques));
-            localStorage.setItem('saldo_'+meuTel, saldo.toFixed(2));
-            localStorage.setItem('iban_'+meuTel, ib); // Salva o IBAN para o Admin
-            updateUI(); updateHist(); notify("💸 Saque solicitado!");
-        }
-
-        function updateHist() {
-            document.getElementById('histS').innerHTML = saques.map(s => `
-                <div class="hist-item">
-                    <div style="display:flex; justify-content:space-between">
-                        <strong>${s.valor.toLocaleString()} Kz</strong>
-                        <span style="font-size:10px; color:#999">${s.data}</span>
-                    </div>
-                    <div style="color:orange; font-weight:bold; margin-top:5px">Estado: ${s.status}</div>
-                </div>`).join('') || "Sem registos.";
-        }
-
-        function copiarLink() {
-            const link = window.location.origin + window.location.pathname + "?ref=" + meuTel;
-            navigator.clipboard.writeText(link).then(() => notify("🔗 Link copiado!"));
-        }
-
         function updateUI() { 
-            document.getElementById('mainSaldo').innerText = saldo.toLocaleString('pt-AO', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " Kz"; 
-        }
-
-        function nav(p, e) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active-page'));
-            e.classList.add('active'); document.getElementById('p-' + p).classList.add('active-page');
-            if(p === 'assets') renderAssets();
-            if(p === 'profile') updateHist();
+            document.getElementById('mainSaldo').innerText = saldo.toLocaleString('pt-AO') + " Kz"; 
         }
 
         function setAuth(m) {
@@ -331,8 +265,19 @@
             document.getElementById('btnAction').innerText = m==='login' ? "ENTRAR AGORA" : "CRIAR CONTA";
         }
 
-        function openM(id) { document.getElementById('m-' + id).style.display = 'flex'; if(id==='withdraw') updateHist(); }
+        function nav(p, e) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active-page'));
+            e.classList.add('active'); document.getElementById('p-' + p).classList.add('active-page');
+        }
+
+        function openM(id) { document.getElementById('m-' + id).style.display = 'flex'; }
         function closeM() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+        
+        function copiarLink() {
+            const link = window.location.origin + window.location.pathname + "?ref=" + meuTel;
+            navigator.clipboard.writeText(link).then(() => notify("🔗 Link copiado!"));
+        }
     </script>
 </body>
-                        </html>
+</html>
