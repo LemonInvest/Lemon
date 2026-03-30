@@ -12,37 +12,31 @@
         body { font-family: 'Inter', sans-serif; background: #020617; color: #f8fafc; }
         .admin-card { background: #0f172a; border-radius: 30px; border: 1px solid #1e293b; padding: 25px; }
         .stat-card { background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid #334155; }
-        .status-badge { font-[900] text-[8px] uppercase px-2 py-1 rounded-lg italic; }
         #lockScreen { position: fixed; inset: 0; background: #020617; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        
-        /* ESTILO DO MODAL DE FOTO */
         #photoModal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; cursor: pointer; }
     </style>
 </head>
 <body class="p-4 md:p-10">
 
     <div id="photoModal" onclick="this.style.display='none'">
-        <div class="relative max-w-4xl">
-            <p class="text-white text-[10px] font-black uppercase mb-2 text-center italic">Clique em qualquer lugar para fechar</p>
-            <img id="imgFull" src="" class="max-w-full max-h-[80vh] rounded-2xl border-4 border-[#0052FF] shadow-2xl">
-        </div>
+        <img id="imgFull" src="" class="max-w-full max-h-[80vh] rounded-2xl border-4 border-blue-600 shadow-2xl">
     </div>
 
     <div id="lockScreen">
         <div class="w-full max-w-sm text-center">
             <h1 class="text-2xl font-black italic text-[#0052FF] mb-6">SISTEMA <span class="text-white">BLOQUEADO</span></h1>
             <input type="password" id="masterKey" placeholder="Chave de Acesso" class="w-full p-5 rounded-2xl bg-slate-900 border border-slate-700 font-bold text-center outline-none text-white mb-4">
-            <button onclick="checkLock()" class="w-full bg-blue-600 p-5 rounded-2xl font-black uppercase italic hover:bg-blue-700 transition-all">Desbloquear</button>
+            <button onclick="checkLock()" class="w-full bg-blue-600 p-5 rounded-2xl font-black uppercase italic">Desbloquear</button>
         </div>
     </div>
 
     <div id="mainContent" style="display: none;">
-        <header class="max-w-6xl mx-auto mb-10 flex flex-col md:flex-row justify-between items-center gap-6 border-b border-slate-800 pb-8 text-center md:text-left">
+        <header class="max-w-6xl mx-auto mb-10 flex justify-between items-center border-b border-slate-800 pb-8">
             <div>
-                <h1 class="text-3xl font-black italic tracking-tighter uppercase text-[#0052FF]">SAFE<span class="text-white">CONTROL</span> <span class="text-[10px] bg-red-600 text-white px-2 py-1 rounded ml-2 italic text-center">MASTER</span></h1>
-                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.3em] italic">Gestão Central de Ativos</p>
+                <h1 class="text-2xl font-black italic text-[#0052FF]">SAFE<span class="text-white">CONTROL</span></h1>
+                <p class="text-[9px] text-slate-500 font-bold uppercase italic tracking-widest">Painel de Administração Geral</p>
             </div>
-            <button onclick="location.reload()" class="bg-slate-800 px-6 py-3 rounded-2xl text-[10px] font-black uppercase italic">Atualizar Painel</button>
+            <button onclick="location.reload()" class="bg-slate-800 px-4 py-2 rounded-xl text-[10px] font-black uppercase italic hover:bg-slate-700">Atualizar</button>
         </header>
 
         <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 text-center">
@@ -65,33 +59,60 @@
         </div>
 
         <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-4 space-y-6">
-                <div class="admin-card text-center">
-                    <h3 class="text-[10px] font-black uppercase text-blue-400 mb-6 italic tracking-widest">Buscar Terminal</h3>
-                    <div class="flex gap-2 mb-6">
-                        <input type="tel" id="searchPhone" placeholder="9xxxxxxxx" class="flex-1 p-4 rounded-2xl bg-slate-900 border border-slate-700 font-bold text-sm text-white outline-none">
-                        <button onclick="searchUser()" class="bg-blue-600 px-5 rounded-2xl font-bold">BUSCAR</button>
+            
+            <div class="lg:col-span-5 space-y-6">
+                <div class="admin-card">
+                    <h3 class="text-[10px] font-black uppercase text-blue-400 mb-6 italic tracking-widest text-center">Controlo de Usuário</h3>
+                    <div class="flex gap-2 mb-8">
+                        <input type="tel" id="searchPhone" placeholder="Terminal 9xxxxxxxx" class="flex-1 p-4 rounded-2xl bg-slate-900 border border-slate-700 font-bold text-white outline-none">
+                        <button onclick="searchUser()" class="bg-blue-600 px-6 rounded-2xl font-black italic text-xs">BUSCAR</button>
                     </div>
 
-                    <div id="userProfile" class="hidden space-y-5">
-                        <div class="p-5 bg-black/40 rounded-2xl border border-slate-800">
-                            <p id="uStatus" class="font-black italic text-[10px] uppercase mb-4"></p>
-                            <p id="uBalance" class="text-3xl font-black italic text-white mb-4">0,00 Kz</p>
-                            <button id="banBtn" onclick="toggleBan()" class="w-full text-[8px] font-black px-4 py-3 rounded-xl uppercase"></button>
+                    <div id="userProfile" class="hidden space-y-6">
+                        <div class="p-5 bg-black/40 rounded-2xl border border-slate-800 text-center">
+                            <p id="uContactDisplay" class="text-[12px] font-black text-blue-500 uppercase italic tracking-widest mb-1"></p>
+                            <p id="uStatus" class="font-black italic text-[9px] uppercase mb-4"></p>
+                            <p class="text-[8px] font-black text-slate-500 uppercase mb-1 italic">Saldo Atual</p>
+                            <p id="uBalanceDisplay" class="text-4xl font-black italic text-white mb-2">0 Kz</p>
                         </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-4 bg-slate-900 rounded-2xl border border-slate-800">
+                                <p class="text-[8px] font-black text-slate-500 uppercase italic mb-2">Senha Login</p>
+                                <input type="text" id="uPass" class="w-full bg-transparent font-black text-white outline-none text-sm mb-2 border-b border-slate-700 pb-1">
+                                <button onclick="saveData('pass')" class="w-full bg-blue-600/10 text-blue-400 py-2 rounded-lg text-[8px] font-black uppercase italic">Gravar Senha</button>
+                            </div>
+                            <div class="p-4 bg-slate-900 rounded-2xl border border-slate-800">
+                                <p class="text-[8px] font-black text-slate-500 uppercase italic mb-2">PIN Saque</p>
+                                <input type="text" id="uPin" class="w-full bg-transparent font-black text-white outline-none text-sm mb-2 border-b border-slate-700 pb-1">
+                                <button onclick="saveData('pin')" class="w-full bg-blue-600/10 text-blue-400 py-2 rounded-lg text-[8px] font-black uppercase italic">Gravar PIN</button>
+                            </div>
+                        </div>
+
+                        <div class="p-5 bg-slate-900 rounded-2xl border border-slate-800">
+                            <p class="text-[8px] font-black text-slate-500 uppercase italic mb-4">Ajustar Saldo Manualmente</p>
+                            <div class="flex gap-2">
+                                <input type="number" id="admAmount" placeholder="Valor Kz" class="flex-1 p-4 rounded-xl bg-black border border-slate-700 font-bold text-white outline-none">
+                                <button onclick="modifyBalance('add')" class="bg-emerald-600 px-4 rounded-xl font-black text-[10px] uppercase italic">Add</button>
+                                <button onclick="modifyBalance('rem')" class="bg-red-600 px-4 rounded-xl font-black text-[10px] uppercase italic">Rem</button>
+                            </div>
+                        </div>
+
+                        <button id="banBtn" onclick="toggleBan()" class="w-full p-4 rounded-2xl font-black uppercase italic text-[10px] tracking-widest transition-all"></button>
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-8">
-                <div class="admin-card min-h-[400px]">
+            <div class="lg:col-span-7">
+                <div class="admin-card min-h-[500px]">
                     <div class="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
-                        <h2 class="text-[11px] font-black uppercase italic text-white">Fila de Espera</h2>
-                        <span id="pendingCount" class="bg-blue-600 text-[9px] font-black px-4 py-1 rounded-full uppercase italic">0</span>
+                        <h2 class="text-[11px] font-black uppercase italic text-white tracking-widest">Pedidos Pendentes</h2>
+                        <span id="pendingCount" class="bg-blue-600 text-[10px] font-black px-4 py-1 rounded-full italic">0</span>
                     </div>
                     <div id="adminQueue" class="space-y-4"></div>
                 </div>
             </div>
+
         </main>
     </div>
 
@@ -116,26 +137,76 @@
         const db = firebase.database();
 
         let allUsers = {};
+        window.activeUser = null;
 
         db.ref('users').on('value', (snapshot) => {
             allUsers = snapshot.val() || {};
-            calculateStats();
+            calculateGeneralStats(); // Calcula o total de inscritos, etc.
             renderQueue();
+            if(window.activeUser) updateProfileUI();
         });
 
-        function calculateStats() {
+        function calculateGeneralStats() {
             const phones = Object.keys(allUsers);
             let totalBalance = 0; let totalDaily = 0; let banned = 0;
+            
             phones.forEach(p => {
                 const u = allUsers[p];
                 totalBalance += (u.balance || 0);
                 totalDaily += (u.dailyIncome || 0);
                 if(u.isBanned) banned++;
             });
+
             document.getElementById('statTotalUsers').innerText = phones.length;
             document.getElementById('statTotalBalance').innerText = totalBalance.toLocaleString() + " Kz";
             document.getElementById('statTotalDaily').innerText = totalDaily.toLocaleString() + " Kz";
             document.getElementById('statBanned').innerText = banned;
+        }
+
+        function searchUser() {
+            const p = document.getElementById('searchPhone').value.trim();
+            if(!allUsers[p]) return alert("ERRO: Este contacto não está cadastrado no sistema.");
+            window.activeUser = p;
+            updateProfileUI();
+        }
+
+        function updateProfileUI() {
+            const u = allUsers[window.activeUser];
+            document.getElementById('userProfile').classList.remove('hidden');
+            
+            // Mostrar Contacto e Saldo
+            document.getElementById('uContactDisplay').innerText = "CONTACTO: " + window.activeUser;
+            document.getElementById('uBalanceDisplay').innerText = (u.balance || 0).toLocaleString() + " Kz";
+            
+            // Mostrar Senha e PIN nos inputs para editar
+            document.getElementById('uPass').value = u.pass || "---";
+            document.getElementById('uPin').value = u.pin || "---";
+            
+            // Status da Conta
+            const uStatus = document.getElementById('uStatus');
+            uStatus.innerText = u.isBanned ? "SISTEMA BLOQUEADO PARA ESTE USUÁRIO" : "ACESSO PERMITIDO / CONTA ATIVA";
+            uStatus.className = `font-black italic text-[9px] uppercase mb-4 ${u.isBanned ? 'text-red-500' : 'text-emerald-500'}`;
+
+            const bBtn = document.getElementById('banBtn');
+            bBtn.innerText = u.isBanned ? "ATIVAR ACESSO" : "BLOQUEAR ACESSO";
+            bBtn.className = u.isBanned ? "w-full bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 p-4 rounded-2xl font-black uppercase italic text-[10px]" : "w-full bg-red-600/20 text-red-500 border border-red-500/30 p-4 rounded-2xl font-black uppercase italic text-[10px]";
+        }
+
+        function saveData(field) {
+            const val = document.getElementById(field === 'pass' ? 'uPass' : 'uPin').value;
+            db.ref(`users/${window.activeUser}/${field}`).set(val).then(() => alert("SUCESSO: Informação gravada no banco de dados!"));
+        }
+
+        function modifyBalance(type) {
+            const amount = parseFloat(document.getElementById('admAmount').value);
+            if(!amount) return alert("Por favor, digite um valor válido.");
+            const current = allUsers[window.activeUser].balance || 0;
+            const newVal = type === 'add' ? current + amount : current - amount;
+            
+            db.ref(`users/${window.activeUser}/balance`).set(newVal).then(() => {
+                alert("SALDO ATUALIZADO COM SUCESSO!");
+                document.getElementById('admAmount').value = "";
+            });
         }
 
         function renderQueue() {
@@ -151,56 +222,40 @@
 
             document.getElementById('pendingCount').innerText = pendingList.length;
             if(pendingList.length === 0) {
-                queue.innerHTML = `<div class="text-center py-20 text-slate-600 italic text-xs font-black uppercase">Nenhum pedido pendente.</div>`;
+                queue.innerHTML = `<div class="text-center py-20 text-slate-700 font-black italic text-xs uppercase tracking-widest">Nenhum pedido pendente no momento</div>`;
                 return;
             }
 
             queue.innerHTML = pendingList.map(op => `
-                <div class="bg-slate-900/60 p-6 rounded-[35px] border border-slate-800 flex flex-col md:flex-row justify-between gap-6">
-                    <div class="flex-1">
-                        <span class="status-badge ${op.type.includes('Depósito') ? 'bg-emerald-400/10 text-emerald-400' : 'bg-red-400/10 text-red-400'}">${op.type}</span>
-                        <p class="text-3xl font-black italic text-white">${op.val.toLocaleString()} Kz</p>
-                        <p class="text-[9px] font-bold text-blue-500 uppercase italic mt-1">Terminal: ${op.phone}</p>
-                        
-                        ${op.type.includes('Saque') ? `<p class="mt-3 p-3 bg-red-600/10 border border-red-600/20 rounded-xl text-xs font-mono text-white">IBAN: ${op.iban || 'ERRO'}</p>` : ''}
-
-                        ${op.proof ? `
-                        <button onclick="showPhoto('${op.proof}')" class="mt-3 w-full bg-blue-600/10 text-blue-400 border border-blue-400/30 py-3 rounded-xl text-[9px] font-black uppercase italic">Ver Comprovativo</button>` : ''}
+                <div class="bg-slate-900/60 p-6 rounded-[30px] border border-slate-800 flex flex-col md:flex-row justify-between gap-4">
+                    <div>
+                        <span class="text-[8px] font-black px-2 py-1 bg-blue-600/10 text-blue-400 rounded uppercase italic">${op.type}</span>
+                        <p class="text-2xl font-black text-white italic mt-1">${op.val.toLocaleString()} Kz</p>
+                        <p class="text-[9px] font-bold text-slate-500 uppercase mt-1 italic">TEL: ${op.phone}</p>
+                        ${op.type.includes('Saque') ? `<p class="mt-2 text-[10px] font-mono text-red-400 bg-red-400/5 p-2 rounded">IBAN: ${op.iban || 'ERRO'}</p>` : ''}
+                        ${op.proof ? `<button onclick="showPhoto('${op.proof}')" class="mt-2 w-full bg-blue-600/20 text-blue-400 py-2 rounded-lg text-[9px] font-black uppercase italic">Ver Comprovativo</button>` : ''}
                     </div>
-                    <div class="flex gap-2">
-                        <button onclick="approveOp('${op.phone}', '${op.hId}')" class="bg-emerald-600 px-8 py-4 rounded-2xl font-black text-[10px] uppercase">Aprovar</button>
-                        <button onclick="rejectOp('${op.phone}', '${op.hId}')" class="bg-red-600/20 text-red-500 border border-red-500/30 px-8 py-4 rounded-2xl font-black text-[10px] uppercase">Rejeitar</button>
+                    <div class="flex flex-row md:flex-col gap-2">
+                        <button onclick="approveOp('${op.phone}', '${op.hId}')" class="flex-1 bg-emerald-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase">Aprovar</button>
+                        <button onclick="rejectOp('${op.phone}', '${op.hId}')" class="flex-1 bg-red-600/20 text-red-500 border border-red-500/30 px-6 py-3 rounded-xl font-black text-[10px] uppercase italic">Rejeitar</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        // FUNÇÃO PARA ABRIR A FOTO
         function showPhoto(base64) {
             document.getElementById('imgFull').src = base64;
             document.getElementById('photoModal').style.display = 'flex';
         }
 
-        function searchUser() {
-            const p = document.getElementById('searchPhone').value;
-            if(!allUsers[p]) return alert("Não encontrado");
-            const u = allUsers[p];
-            document.getElementById('userProfile').classList.remove('hidden');
-            document.getElementById('uBalance').innerText = (u.balance || 0).toLocaleString() + " Kz";
-            document.getElementById('uStatus').innerText = u.isBanned ? "BANIDO" : "ATIVO";
-            document.getElementById('uStatus').className = `font-black italic text-[10px] uppercase mb-4 ${u.isBanned ? 'text-red-500' : 'text-emerald-500'}`;
-            const bBtn = document.getElementById('banBtn');
-            bBtn.innerText = u.isBanned ? "DESBLOQUEAR" : "BANIR CONTA";
-            bBtn.className = u.isBanned ? "w-full bg-emerald-600 font-black px-4 py-3 rounded-xl text-white uppercase" : "w-full bg-red-600/20 text-red-500 border border-red-500/30 font-black px-4 py-3 rounded-xl uppercase";
-            window.selectedUserPhone = p;
-        }
-
-        function toggleBan() { db.ref(`users/${window.selectedUserPhone}/isBanned`).set(!allUsers[window.selectedUserPhone].isBanned); }
+        function toggleBan() { db.ref(`users/${window.activeUser}/isBanned`).set(!allUsers[window.activeUser].isBanned); }
+        
         function approveOp(phone, hId) {
             const op = allUsers[phone].history[hId];
             if(op.type.includes('Depósito')) db.ref(`users/${phone}/balance`).set((allUsers[phone].balance || 0) + op.val);
             db.ref(`users/${phone}/history/${hId}/status`).set('CONCLUÍDO');
         }
+        
         function rejectOp(phone, hId) {
             const op = allUsers[phone].history[hId];
             if(op.type.includes('Saque')) db.ref(`users/${phone}/balance`).set((allUsers[phone].balance || 0) + op.val);
@@ -208,5 +263,5 @@
         }
     </script>
 </body>
-                            </html>
+                        </html>
     
