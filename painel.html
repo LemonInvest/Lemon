@@ -4,133 +4,202 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GITHUB - ADMIN MASTER</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; margin: 0; }
-        .card-adm { background: #1e293b; border-radius: 1.2rem; border: 1px solid #334155; }
-        .input-adm { background: #0f172a; border: 1px solid #334155; color: white; padding: 12px; border-radius: 0.8rem; outline: none; width: 100%; font-weight: bold; }
-        .btn-acao { transition: all 0.2s; font-weight: 900; text-transform: uppercase; border-radius: 0.8rem; }
-        .btn-acao:active { transform: scale(0.95); }
+        body { background: #070b14; color: white; font-family: sans-serif; }
+        .card-adm { background: #0f172a; border: 1px solid #1e293b; border-radius: 1rem; }
+        .input-adm { background: #1e293b; border: 1px solid #334155; color: white; border-radius: 0.5rem; outline: none; }
         .hidden { display: none !important; }
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 900; }
     </style>
 </head>
-<body>
-<div id="login-master" class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-    <i class="fab fa-github text-7xl text-blue-500 mb-4"></i>
-    <h1 class="text-3xl font-black italic mb-8 uppercase tracking-tighter text-blue-500">Master Admin</h1>
-    <input type="password" id="key-adm" placeholder="CHAVE DE ACESSO" class="input-adm text-center mb-4 max-w-xs text-xl border-blue-500/30">
-    <button onclick="entrarPainel()" class="w-full max-w-xs bg-blue-600 py-5 btn-acao shadow-lg shadow-blue-600/20">Aceder ao Controlo</button>
-</div>
+<body class="p-4 pb-20">
+    <div id="login-screen" class="fixed inset-0 bg-[#070b14] flex flex-col items-center justify-center z-[100] p-6">
+        <i class="fab fa-github text-6xl text-blue-500 mb-4"></i>
+        <h2 class="text-xl font-black mb-6 italic">ACESSO MASTER</h2>
+        <input type="password" id="admin-key" placeholder="Chave ABS..." class="w-full max-w-xs p-4 input-adm text-center mb-4">
+        <button onclick="checkAccess()" class="w-full max-w-xs bg-blue-600 py-4 rounded-xl font-black">ENTRAR</button>
+    </div>
 
-<div id="painel-master" class="hidden min-h-screen">
-    <header class="p-6 border-b border-slate-700 flex justify-between items-center sticky top-0 bg-slate-900 z-50">
-        <div><h2 class="font-black italic text-blue-500 text-xl">GITHUB MASTER</h2><p class="text-[9px] opacity-50 font-bold uppercase">Painel de Operações</p></div>
-        <button onclick="limparCache()" class="bg-red-500/10 text-red-500 text-[10px] px-4 py-2 rounded-lg font-black border border-red-500/20"><i class="fas fa-broom mr-1"></i> LIMPAR CACHE</button>
-    </header>
-
-    <div class="p-4 space-y-6">
-        <div class="card-adm p-5">
-            <p class="text-[10px] font-black mb-3 opacity-50 uppercase italic">Pesquisar ou Listar Usuários</p>
-            <div class="flex gap-2">
-                <input type="number" id="busca-id" placeholder="Nº Telefone" class="input-adm">
-                <button onclick="buscarUser()" class="bg-blue-600 px-6 btn-acao"><i class="fas fa-search"></i></button>
+    <div id="admin-content" class="hidden">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-2xl font-black text-blue-500 italic">GITHUB CONTROL</h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase">Inscritos Total: <span id="total-users" class="text-white">0</span></p>
             </div>
-            <div id="lista-atividades" class="mt-6 space-y-4"></div>
+            <button onclick="location.reload()" class="bg-red-500/20 text-red-500 text-[10px] px-3 py-2 rounded-lg font-black border border-red-500/30">LIMPAR CACHE</button>
+        </div>
+
+        <div class="flex gap-2 mb-6">
+            <button onclick="tab('pedidos')" id="btn-pedidos" class="flex-1 bg-blue-600 py-3 rounded-lg font-black text-[11px] uppercase">Pedidos</button>
+            <button onclick="tab('usuarios')" id="btn-usuarios" class="flex-1 bg-slate-800 py-3 rounded-lg font-black text-[11px] uppercase">Usuários</button>
+        </div>
+
+        <div id="sec-pedidos" class="space-y-4">
+            <h2 class="text-xs font-black text-slate-500 uppercase italic">Solicitações Financeiras</h2>
+            <div id="lista-pedidos" class="space-y-4"></div>
+        </div>
+
+        <div id="sec-usuarios" class="hidden space-y-4">
+            <div class="card-adm p-4">
+                <p class="text-[10px] font-black mb-2 opacity-50">PESQUISA RÁPIDA (CONTACTO)</p>
+                <div class="flex gap-2">
+                    <input type="number" id="search-input" placeholder="9xxxxxxxx" class="flex-1 p-3 input-adm text-sm">
+                    <button onclick="searchUser()" class="bg-blue-600 px-5 rounded-lg"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+            <div id="lista-usuarios" class="space-y-4"></div>
         </div>
     </div>
-</div>
 
-<div id="modal-img" class="fixed inset-0 bg-black/95 hidden z-[100] flex flex-col items-center justify-center p-4">
-    <img id="full-img" src="" class="max-w-full max-h-[75vh] border-4 border-white rounded-2xl shadow-2xl">
-    <div class="grid grid-cols-2 gap-4 w-full max-w-xs mt-6">
-        <button onclick="fecharImg()" class="bg-slate-700 py-4 btn-acao text-xs">Voltar</button>
-        <button id="btn-aprovar-modal" class="bg-green-600 py-4 btn-acao text-xs">Aprovar Agora</button>
+    <div id="modal-img" class="fixed inset-0 bg-black/95 hidden flex flex-col items-center justify-center z-[110] p-4" onclick="this.classList.add('hidden')">
+        <img id="full-img" src="" class="max-w-full max-h-[80vh] border-2 border-blue-500 rounded-xl">
+        <p class="mt-4 font-black text-xs uppercase italic">Clique para fechar</p>
     </div>
-</div>
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, getDoc, deleteDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyA03WW6zrf79PsZY6KvaxGRsGFY1AEFCYs", authDomain: "fir-b8708.firebaseapp.com", 
-        projectId: "fir-b8708", storageBucket: "fir-b8708.firebasestorage.app", 
-        messagingSenderId: "174524990208", appId: "1:174524990208:web:eb08738fdd7cd1cd98a9e5" 
-    };
-    const db = getFirestore(initializeApp(firebaseConfig));
+        const firebaseConfig = { 
+            apiKey: "AIzaSyA03WW6zrf79PsZY6KvaxGRsGFY1AEFCYs", 
+            authDomain: "fir-b8708.firebaseapp.com", 
+            projectId: "fir-b8708", 
+            storageBucket: "fir-b8708.firebasestorage.app", 
+            messagingSenderId: "174524990208", 
+            appId: "1:174524990208:web:eb08738fdd7cd1cd98a9e5" 
+        };
 
-    window.entrarPainel = () => {
-        if(document.getElementById('key-adm').value === 'ABS..943') {
-            document.getElementById('login-master').classList.add('hidden');
-            document.getElementById('painel-master').classList.remove('hidden');
-            iniciarMonitoramento();
-        } else alert("CHAVE INVÁLIDA");
-    };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    window.limparCache = () => { if(confirm("Limpar cache e atualizar?")) location.reload(); };
+        window.checkAccess = () => {
+            if(document.getElementById('admin-key').value === 'ABS..943') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+            } else { alert("Chave Inválida"); }
+        };
 
-    function iniciarMonitoramento() {
+        window.tab = (tipo) => {
+            document.getElementById('sec-pedidos').classList.toggle('hidden', tipo !== 'pedidos');
+            document.getElementById('sec-usuarios').classList.toggle('hidden', tipo !== 'usuarios');
+            document.getElementById('btn-pedidos').className = tipo === 'pedidos' ? 'flex-1 bg-blue-600 py-3 rounded-lg font-black text-[11px] uppercase' : 'flex-1 bg-slate-800 py-3 rounded-lg font-black text-[11px] uppercase';
+            document.getElementById('btn-usuarios').className = tipo === 'usuarios' ? 'flex-1 bg-blue-600 py-3 rounded-lg font-black text-[11px] uppercase' : 'flex-1 bg-slate-800 py-3 rounded-lg font-black text-[11px] uppercase';
+        };
+
         onSnapshot(collection(db, "usuarios"), (snap) => {
-            const list = document.getElementById('lista-atividades'); list.innerHTML = "";
+            const listP = document.getElementById('lista-pedidos');
+            const listU = document.getElementById('lista-usuarios');
+            listP.innerHTML = ""; listU.innerHTML = "";
+            document.getElementById('total-users').innerText = snap.size;
+
             snap.forEach(userDoc => {
-                const u = userDoc.data(), uid = userDoc.id;
-                const card = document.createElement('div');
-                card.className = "bg-slate-800 p-5 rounded-2xl border border-slate-700 mb-4";
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-4">
-                        <div><b class="text-blue-400 text-lg italic">ID: ${uid}</b><br><small class="font-black text-orange-400">SENHA: ${u.pw}</small></div>
-                        <span class="status-badge ${u.bloqueado?'bg-red-500':'bg-green-500'}">${u.bloqueado?'BLOQUEADO':'ATIVO'}</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 text-[10px] font-black uppercase mb-4 opacity-70">
-                        <p>Saldo: ${u.saldo} KZ</p><p>Convidados: ${u.convidados || 0}</p>
-                        <p class="col-span-2 text-blue-300">IBAN: ${u.banco?.i || 'NÃO DEFINIDO'}</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 mb-4">
-                        <button onclick="window.modificarSaldo('${uid}', 'add')" class="bg-green-600/20 text-green-500 py-2 btn-acao text-[9px]">Add Saldo</button>
-                        <button onclick="window.modificarSaldo('${uid}', 'sub')" class="bg-red-600/20 text-red-500 py-2 btn-acao text-[9px]">Retirar</button>
-                        <button onclick="window.darBonus('${uid}')" class="bg-blue-600/20 text-blue-500 py-2 btn-acao text-[9px]">Atribuir Bónus</button>
-                        <button onclick="window.mudarSenha('${uid}')" class="bg-white/10 text-white py-2 btn-acao text-[9px]">Mudar Senha</button>
-                        <button onclick="window.toggleBlock('${uid}', ${u.bloqueado})" class="bg-slate-700 py-2 btn-acao text-[9px]">${u.bloqueado?'Desbloquear':'Bloquear'}</button>
-                        <button onclick="window.eliminar('${uid}')" class="bg-red-600 py-2 btn-acao text-[9px]">Eliminar Conta</button>
-                    </div>
-                    <div id="pendentes-${uid}" class="space-y-2 mt-4 border-t border-slate-700 pt-4"></div>
-                    <details class="mt-2"><summary class="text-[9px] font-black text-slate-500 uppercase">Ver Extrato</summary>
-                    <div class="text-[8px] space-y-1 mt-2">${u.extrato?.slice().reverse().map(e => `<div class="flex justify-between border-b border-white/5 py-1"><span>${e.desc}</span><b>${e.valor} KZ</b></div>`).join('') || 'Sem transações'}</div></details>
-                `;
-                list.appendChild(card);
+                const u = userDoc.data();
+                const uid = userDoc.id;
+
+                // Renderizar Pedidos Pendentes
                 u.extrato?.forEach((ex, idx) => {
                     if(ex.status === "Em análise" || ex.status === "Pendente") {
-                        const p = document.createElement('div'); p.className = "bg-slate-900 p-3 rounded-xl border border-blue-500/30";
-                        p.innerHTML = `<div class="flex justify-between text-[10px] font-black uppercase"><span>${ex.desc}</span><b class="text-blue-400">${ex.valor} KZ</b></div>
-                            ${ex.foto ? `<button onclick="window.ver('${ex.foto}', '${uid}', ${idx}, '${ex.desc}', ${ex.valor})" class="w-full bg-blue-600 text-[9px] py-2 mt-2 btn-acao">VER COMPROVANTE</button>` : ''}
-                            <div class="grid grid-cols-2 gap-2 mt-3">
-                                <button onclick="window.decidir('${uid}', ${idx}, 'Aprovado', ${ex.valor}, '${ex.desc}')" class="bg-green-600 py-2 rounded-lg text-[10px] font-black">APROVAR</button>
-                                <button onclick="window.decidir('${uid}', ${idx}, 'Rejeitado', ${ex.valor}, '${ex.desc}')" class="bg-red-600 py-2 rounded-lg text-[10px] font-black">REJEITAR</button>
-                            </div>`;
-                        document.getElementById(`pendentes-${uid}`).appendChild(p);
+                        const pCard = document.createElement('div');
+                        pCard.className = "card-adm p-4 border-l-4 " + (ex.desc.includes('Saque') ? 'border-red-500' : 'border-green-500');
+                        pCard.innerHTML = `
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[10px] font-black uppercase text-blue-400">${ex.desc}</span>
+                                <b class="text-lg">${ex.valor} KZ</b>
+                            </div>
+                            <p class="text-[9px] font-bold mb-3 opacity-50">USUÁRIO: ${uid}</p>
+                            ${ex.foto ? `<button onclick="window.ver('${ex.foto}')" class="w-full bg-slate-800 py-2 rounded mb-3 text-[10px] font-bold">VER COMPROVANTE</button>` : ''}
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="window.decidir('${uid}', ${idx}, 'Aprovado', ${ex.valor}, '${ex.desc}')" class="bg-green-600 py-2 rounded font-bold text-[10px]">APROVAR</button>
+                                <button onclick="window.decidir('${uid}', ${idx}, 'Rejeitado', ${ex.valor}, '${ex.desc}')" class="bg-red-600 py-2 rounded font-bold text-[10px]">REJEITAR</button>
+                            </div>
+                        `;
+                        listP.appendChild(pCard);
                     }
                 });
+
+                // Renderizar Cartão de Gestão de Usuário
+                const uCard = document.createElement('div');
+                uCard.id = "user-card-" + uid;
+                uCard.className = "card-adm p-4";
+                uCard.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
+                        <b class="text-blue-400 italic">${uid}</b>
+                        <div class="flex gap-2">
+                            <button onclick="window.toggleBan('${uid}', ${u.banido})" class="${u.banido?'bg-red-500':'bg-slate-700'} text-[9px] px-3 py-1 rounded font-black">${u.banido?'DESBLOQUEAR':'BLOQUEAR'}</button>
+                            <button onclick="window.eliminar('${uid}')" class="bg-red-900 text-[9px] px-3 py-1 rounded font-black">APAGAR</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-y-2 text-[10px] font-bold mb-4">
+                        <p>SALDO: <span class="text-green-500">${u.saldo} KZ</span></p>
+                        <p>SENHA: <span class="text-orange-400">${u.pw}</span></p>
+                        <p class="col-span-2">IBAN: ${u.banco?.i || 'NÃO CONFIGURADO'}</p>
+                        <p class="col-span-2">CONVIDADOS: ${u.convidados || 0}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="window.ajustarSaldo('${uid}', 'add')" class="bg-blue-600/20 text-blue-400 py-2 rounded text-[9px] font-black">ADD SALDO</button>
+                        <button onclick="window.ajustarSaldo('${uid}', 'sub')" class="bg-red-600/20 text-red-400 py-2 rounded text-[9px] font-black">RETIRAR SALDO</button>
+                        <button onclick="window.darBonus('${uid}')" class="bg-yellow-600/20 text-yellow-500 py-2 rounded text-[9px] font-black">DAR BÓNUS</button>
+                        <button onclick="window.novaSenha('${uid}')" class="bg-slate-700 py-2 rounded text-[9px] font-black">MUDAR SENHA</button>
+                    </div>
+                    <details class="mt-4"><summary class="text-[9px] font-black opacity-50 uppercase">Ver Extrato Completo</summary>
+                        <div class="mt-2 space-y-1 text-[8px] max-h-32 overflow-y-auto">
+                            ${u.extrato?.map(e => `<div class="flex justify-between border-b border-slate-800 py-1"><span>${e.desc}</span><b class="${e.status==='Aprovado'?'text-green-500':'text-red-400'}">${e.status}</b></div>`).join('')}
+                        </div>
+                    </details>
+                `;
+                listU.appendChild(uCard);
             });
         });
-    }
 
-    window.ver = (src, uid, idx, desc, valor) => { document.getElementById('full-img').src = src; document.getElementById('modal-img').classList.remove('hidden'); document.getElementById('btn-aprovar-modal').onclick = () => window.decidir(uid, idx, 'Aprovado', valor, desc); };
-    window.fecharImg = () => document.getElementById('modal-img').classList.add('hidden');
+        window.searchUser = () => {
+            const val = document.getElementById('search-input').value;
+            const el = document.getElementById('user-card-' + val);
+            if(el) { el.scrollIntoView(); el.classList.add('border-blue-500', 'border-2'); setTimeout(() => el.classList.remove('border-blue-500', 'border-2'), 3000); }
+            else { alert("Usuário não encontrado"); }
+        };
 
-    window.decidir = async (uid, idx, status, valor, desc) => {
-        const ref = doc(db, "usuarios", uid); const s = await getDoc(ref); let ext = [...s.data().extrato]; ext[idx].status = status;
-        let up = { extrato: ext };
-        if(status === 'Aprovado' && desc.includes('Depósito')) up.saldo = increment(valor);
-        if(status === 'Rejeitado' && desc.includes('Saque')) up.saldo = increment(valor);
-        await updateDoc(ref, up); fecharImg(); alert("Ação Concluída!");
-    };
+        window.ver = (src) => { document.getElementById('full-img').src = src; document.getElementById('modal-img').classList.remove('hidden'); };
+        window.toggleBan = async (uid, status) => { await updateDoc(doc(db, "usuarios", uid), { banido: !status }); alert("Status alterado!"); };
+        window.eliminar = async (uid) => { if(confirm("Apagar conta "+uid+" permanentemente?")) await deleteDoc(doc(db, "usuarios", uid)); };
+        
+        window.ajustarSaldo = async (uid, tipo) => {
+            const val = parseFloat(prompt("Valor a " + (tipo==='add'?'adicionar':'retirar') + ":"));
+            if(val > 0) {
+                await updateDoc(doc(db, "usuarios", uid), { 
+                    saldo: increment(tipo==='add' ? val : -val),
+                    extrato: arrayUnion({ data: new Date().toLocaleString(), valor: val, desc: "Ajuste Administrativo", status: "Aprovado" })
+                });
+                alert("Saldo atualizado!");
+            }
+        };
 
-    window.modificarSaldo = async (uid, t) => { const v = parseFloat(prompt("Valor:")); if(!v) return; await updateDoc(doc(db, "usuarios", uid), { saldo: increment(t==='add'?v:-v), extrato: arrayUnion({data:new Date().toLocaleString(), valor:v, desc: t==='add'?'Crédito Administrativo':'Débito Administrativo', status:'Concluído'}) }); };
-    window.darBonus = async (uid) => { const v = parseFloat(prompt("Valor do Bónus:")); if(!v) return; await updateDoc(doc(db, "usuarios", uid), { saldo: increment(v), r_total: increment(v), extrato: arrayUnion({data:new Date().toLocaleString(), valor:v, desc:'Bónus Extra Atribuído', status:'Aprovado'}) }); };
-    window.mudarSenha = async (uid) => { const p = prompt("Nova Senha (6 dígitos):"); if(p?.length === 6) await updateDoc(doc(db, "usuarios", uid), { pw: p }); };
-    window.toggleBlock = async (uid, s) => { await updateDoc(doc(db, "usuarios", uid), { bloqueado: !s }); };
-    window.eliminar = async (uid) => { if(confirm("ELIMINAR ESTA CONTA DEFINITIVAMENTE?")) await deleteDoc(doc(db, "usuarios", uid)); };
-</script>
-</body></html>
+        window.darBonus = async (uid) => {
+            const val = parseFloat(prompt("Valor do bónus:"));
+            if(val > 0) {
+                await updateDoc(doc(db, "usuarios", uid), { 
+                    saldo: increment(val),
+                    extrato: arrayUnion({ data: new Date().toLocaleString(), valor: val, desc: "Bónus de Sistema", status: "Aprovado" })
+                });
+                alert("Bónus atribuído!");
+            }
+        };
+
+        window.novaSenha = async (uid) => {
+            const s = prompt("Digite a nova senha de 6 dígitos:");
+            if(s && s.length === 6) { await updateDoc(doc(db, "usuarios", uid), { pw: s }); alert("Senha alterada!"); }
+        };
+
+        window.decidir = async (uid, idx, status, valor, desc) => {
+            const ref = doc(db, "usuarios", uid);
+            const uSnap = await getDoc(ref);
+            let ext = [...uSnap.data().extrato];
+            ext[idx].status = status;
+            let up = { extrato: ext };
+            if(status === 'Aprovado' && desc.includes('Depósito')) { up.saldo = increment(valor); up.r_total = increment(valor); }
+            if(status === 'Rejeitado' && desc.includes('Saque')) { up.saldo = increment(valor); }
+            await updateDoc(ref, up);
+            alert("Pedido " + status);
+        };
+    </script>
+</body>
+</html>
